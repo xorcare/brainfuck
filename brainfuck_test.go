@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"io"
 	"testing"
+
+	"github.com/xorcare/brainfuck/internal/memory"
 )
 
 func execute(t *testing.T, command string, stdin io.Reader, stdout io.Writer) []byte {
 	stream := bytes.NewBufferString(command)
-	memory := make([]byte, 16)
+	memory := memory.NewNano()
 	if err := Execute(stream, stdin, stdout, memory); err != nil {
 		t.Fatal(err)
 	}
 
-	return memory
+	return memory.Bytes()
 }
 
 func asset(t *testing.T, label string, want, got []byte) {
