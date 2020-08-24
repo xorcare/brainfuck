@@ -17,5 +17,7 @@ func Execute(
 		return err
 	}
 
+	pip = interpreter.Optimize(pip)
+
 	return pip.Execute(stdin, stdout, conveyor)
 }

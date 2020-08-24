@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/xorcare/golden"
 
+	"github.com/xorcare/brainfuck/internal/commands"
 	"github.com/xorcare/brainfuck/internal/memory"
 )
 
@@ -90,13 +91,40 @@ func BenchmarkMandelbrot(b *testing.B) {
 	})
 
 	b.Run("Execute", func(b *testing.B) {
-		commands, err := Prepare(bytes.NewBuffer(text))
+		combinator, err := Prepare(bytes.NewBuffer(text))
 		if err != nil {
 			b.Fatal(err)
 		}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			if err := commands.Execute(nil, ioutil.Discard, memory.New()); err != nil {
+			if err := combinator.Execute(nil, ioutil.Discard, memory.New()); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("Optimize", func(b *testing.B) {
+		m := map[int]commands.Combinator{}
+		for i := 0; i < b.N; i++ {
+			combinator, err := Prepare(bytes.NewBuffer(text))
+			if err != nil {
+				b.Fatal(err)
+			}
+			m[i] = combinator
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = Optimize(m[i])
+		}
+	})
+	b.Run("ExecuteOptimized", func(b *testing.B) {
+		combinator, err := Prepare(bytes.NewBuffer(text))
+		if err != nil {
+			b.Fatal(err)
+		}
+		combinator = Optimize(combinator)
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			if err := combinator.Execute(nil, ioutil.Discard, memory.New()); err != nil {
 				b.Fatal(err)
 			}
 		}

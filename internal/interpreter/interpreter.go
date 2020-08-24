@@ -39,3 +39,51 @@ func Prepare(reader io.Reader) (commands.Combinator, error) {
 
 	return combinator, nil
 }
+
+func Optimize(combinator commands.Combinator) (optimized commands.Combinator) {
+	optimized = make(commands.Combinator, 0, len(combinator))
+
+	for i := 0; i < len(combinator); i++ {
+		command := combinator[i]
+		switch command.(type) {
+		case commands.LoopOpenCommand:
+			if command.String() == "[-]" {
+				optimized = append(optimized, commands.ResetMemoryCellCommand{})
+				break
+			}
+			optimized = append(optimized, command)
+		case commands.IncrementPointerCommand:
+			count := 1
+			for i = i + 1; i < len(combinator); i++ {
+				command := combinator[i]
+				if _, ok := command.(commands.IncrementPointerCommand); !ok {
+					i--
+					break
+				}
+				count++
+			}
+			optimized = append(optimized, commands.IncreasePointerCommand{Delta: count})
+		case commands.DecrementPointerCommand:
+			count := -1
+			for i = i + 1; i < len(combinator); i++ {
+				command := combinator[i]
+				if _, ok := command.(commands.DecrementPointerCommand); !ok {
+					i--
+					break
+				}
+				count--
+			}
+			optimized = append(optimized, commands.IncreasePointerCommand{Delta: count})
+		case commands.UnknownCommand:
+			// skip an unknown command.
+		default:
+			optimized = append(optimized, command)
+		}
+	}
+
+	if len(combinator) != len(optimized) {
+		return Optimize(optimized)
+	}
+
+	return optimized
+}

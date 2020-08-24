@@ -5,6 +5,18 @@ type Memory struct {
 	memory []byte
 }
 
+func (m *Memory) AddPosition(delta int) int {
+	if delta < 0 {
+		m.cursor -= uint32(delta * -1)
+	} else {
+		m.cursor += uint32(delta)
+	}
+	if m.cursor >= uint32(len(m.memory)) {
+		m.memory = append(m.memory, make([]byte, 64)...)
+	}
+	return int(m.cursor)
+}
+
 func (m *Memory) Cell() []byte {
 	return m.memory[m.cursor : m.cursor+1]
 }
@@ -36,6 +48,10 @@ func (m *Memory) Previous() int {
 
 func (m *Memory) Bytes() []byte {
 	return m.memory
+}
+
+func (m *Memory) ResetCell() {
+	m.memory[m.cursor] = 0
 }
 
 func New() *Memory {

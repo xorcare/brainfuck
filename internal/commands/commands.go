@@ -5,12 +5,14 @@ import (
 )
 
 type Conveyor interface {
+	AddPosition(delta int) int
 	Byte() byte
 	Cell() []byte
 	Decrement()
 	Increment()
 	Next() int
 	Previous() int
+	ResetCell()
 }
 
 type Command interface {

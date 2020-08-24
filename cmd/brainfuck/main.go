@@ -41,16 +41,18 @@ func main() {
 func execute(stream, stdin io.Reader) {
 	conveyor := memory.New()
 
+	writer := bufio.NewWriter(os.Stdout)
 	err := brainfuck.Execute(
 		bufio.NewReader(stream),
 		bufio.NewReader(stdin),
-		os.Stdout,
+		writer,
 		conveyor,
 	)
-
-	fmt.Println(fmt.Sprintf("\nmemory dump => %q", conveyor.Byte()))
+	if err := writer.Flush(); err != nil {
+		log.Println(err)
+	}
+	fmt.Println(fmt.Sprintf("\nmemory dump => %q\n", conveyor.Byte()))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println()
 }
