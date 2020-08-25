@@ -13,6 +13,8 @@ NAMESPACE = github.com/xorcare/brainfuck
 # to check code coverage.
 COVER_FILE ?= coverage.out
 
+VCS_VERSION ?= $(shell git describe --dirty --long --always --tags || echo 'undefined')
+
 # AT addition to commands to hide unnecessary command output.
 AT ?= @
 
@@ -44,6 +46,9 @@ test: ## Run unit tests
 	$(AT)go test ./... -count=1 -race
 	$(AT)go test ./... -count=1 -coverprofile=$(COVER_FILE) -covermode=atomic $d
 	$(AT)go tool cover -func=$(COVER_FILE) | grep ^total
+
+bench:
+	go test -bench=. -run=^$$ ./... | tee benchmark.$(VCS_VERSION).out
 
 tools: ## Install all needed tools, e.g., for static checks
 	$(AT)echo Installing tools from tools.go
